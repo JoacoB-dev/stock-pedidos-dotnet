@@ -1,0 +1,19 @@
+# .NET
+bin/
+obj/
+*.user
+.vs/
+TestResults/
+
+# Node / Vite
+node_modules/
+web/dist/
+# La interfaz compilada se genera con `npm run build`
+src/Stock.Api/wwwroot/
+
+# Entorno
+.env
+*.log
+.DS_Store
+.idea/
+.vscode/

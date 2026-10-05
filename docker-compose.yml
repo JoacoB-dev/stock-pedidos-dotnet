@@ -1,0 +1,39 @@
+# Levanta SQL Server 2022 + la API (que también sirve la interfaz React).
+# Uso: cp .env.example .env  →  docker compose up --build  →  http://localhost:8080
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: stock-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Definí MSSQL_SA_PASSWORD en .env}
+    ports:
+      - "${SQL_PUERTO_HOST:-14330}:1433"
+    volumes:
+      - stock-sqldata:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' -b -o /dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+
+  api:
+    build: .
+    image: stock-pedidos-api
+    container_name: stock-api
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Stock: "Server=sqlserver,1433;Database=stock;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True"
+      Jwt__Clave: ${JWT_CLAVE:?Definí JWT_CLAVE en .env (32 caracteres o más)}
+      Bd__MigrarAlIniciar: "true"
+      Bd__CargarUsuariosDemo: ${CARGAR_DATOS_DEMO:-true}
+      Bd__CargarDatosDemo: ${CARGAR_DATOS_DEMO:-true}
+    ports:
+      - "${API_PUERTO_HOST:-8080}:8080"
+
+volumes:
+  stock-sqldata:

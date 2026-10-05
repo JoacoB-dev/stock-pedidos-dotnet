@@ -1,0 +1,11 @@
+**/bin
+**/obj
+**/node_modules
+src/Stock.Api/wwwroot
+web/dist
+.git
+.github
+.env
+docs
+tests
+*.md
